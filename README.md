@@ -1,25 +1,12 @@
-# msgqe-amq-docs OOBasic
+# DocCheck
 
-Ultimate aim is to rewrite the OOBasic scripts to JVM. Meanwhile, the spreadsheet `AMQ7ComparisonSheet.fods` is the OOBasic version with the followint modifications
-
-* use the fods/fodt format instead of ods/odt; it works better in git
-
-This sheet works now and should be used.
-
-## Observed issues
-
-* images are linked, not embedded; they are completely missing from the pdf version; they do not have proper size (too small)
-* download is extremely slow (the new JVM version is the same)
-
-# msgqe-amq-docs Kotlin
-
-This repository holds source code for OpenOffice/LibreOffice Calc macros used to download Red Hat documentation and create diffs. It simplifies performing documentation checks for our QE team. It may be also useful for a customer who is upgrading to a new minor release of a Red Hat product.
+This repository holds source code for OpenOffice/LibreOffice Calc macros used to download Red Hat documentation and create diffs. It simplifies performing documentation checks for our team (MSGQE). It may be also useful for a customer who is upgrading to a new minor release of a Red Hat product.
 
 This repository is product-agnostic. There is another repo with MSGQE specific files.
 
 ## About this fork
 
-This software holds a JVM rewrite of [jbossqe-eap-docs](http://git.app.eng.bos.redhat.com/git/jbossqe-eap-docs.git), a set of OOBasic macros used by the JBoss EAP QE team.
+This software holds a JVM rewrite of internal tool [jbossqe-eap-docs](http://git.app.eng.bos.redhat.com/git/jbossqe-eap-docs.git), a set of OOBasic macros used by the JBoss EAP QE team.
 
 The reasons for the rewrite are as follows.
 
@@ -31,6 +18,7 @@ The reasons for the rewrite are as follows.
 ### New features
 
 * image links are replaced with embedded images
+* for better performance, HTML is first mirrored with `wget`, then the mirror is imported
 
 ## About documentation testing workflow
 
@@ -40,7 +28,7 @@ This tool supports the following workflow.
 2. Create diff against previously checked snapshot.
 3. Check all features described in modified sections.
 4. Report issues to Jira.
-5. Commit new snapshot to git
+5. Commit new snapshot to git.
 
 Snapshots allow keeping track of what was checked and when. Otherwise the documentation would keep changing under our hands.
 
@@ -48,12 +36,9 @@ Diffs allow focusing our attention on new and modified instructions. Which is wh
 
 Tracking the snapshots and diffs in git keeps record of what was checked and enables sharing it among the team.
 
-## Documentation sources for A-MQ
+## Supported platform
 
-stores snapshots of AMQ documentation epository stores EAP documentation located at docstage
-EAP 6 non-security documentation: https://documentation-devel.engineering.redhat.com
-New EAP 6 security documentation: https://access.stage.redhat.com/book
-EAP 7 documentation: https://access.stage.redhat.com/book
+There is small amount of Linux-only code in the macro. This tool is developed and used for LibreOffice. It should work with OpenOffice as well.
 
 ## Running tests
 
@@ -63,31 +48,38 @@ The tests require running `soffice` that was given the `-accept` flag:
     
 (no window will open and nothing will be printed; this is headless execution)
 
+Some tests open dialog boxes for visual inspection. These tests require soffice running without the `--headless` option.
+
 ## Installing the macros
 
 This repository is built by Gradle. Use the wrapper (Unix or Windows version) to invoke Gradle. There is a custom task that installs the macro into your LibreOffice user directory.
 
     ./gradlew installMacro -Poo.scriptsdir=~/.config/libreofficedev/4/user/Scripts
 
-## running soffice
+### Tricks for running soffice
 
-https://ask.libreoffice.org/en/question/2641/convert-to-command-line-parameter/
+(from https://ask.libreoffice.org/en/question/2641/convert-to-command-line-parameter/)
 
-soffice -env:UserInstallation=file:///tmp/tempprofile --headless --convert-to csv FileName 
+It is possible to change user profile directory. This way, multiple soffice instances may run at the same time.
+
+Do not forget to install the macros to all profiles where they are needed.
+
+   soffice -env:UserInstallation=file:///tmp/tempprofile --headless --convert-to csv FileName 
 
 ## Seting up
 
 1. Create a new Git repository.
 2. Copy the file `sheet.fods` there and name it with the name of the product, for example `AMQ7.fods`. 
-3. Edit user properties in Calc () and set correct URLs.
+3. Edit the sheet and set correct URLs.
 
 ## Using the macros
 
 The `.fods` document contains these sheets:
 
-* Files -- downloading documentation, converting to ODT format
-* Comparisons -- detecting changed books, generating diff documents, converting to PDF format
-* <EAP_BUILD> -- new sheet is created after each download using Files sheet; it includes books downloaded with a particular EAP build, specifies path to downloaded books
+* Files -- downloading documentation, converting to FODT & PDF formats
+* Comparisons -- detecting changed books, generating diff documents, exporting diffs to PDF format
+* Settings -- configuration for the macros
+* <PRODUCT_BUILD> -- new sheet is created after each download using Files sheet; it includes books downloaded with a particular build, specifies path to downloaded books
 
 The following tasks can be performed:
 
@@ -115,7 +107,6 @@ The following tasks can be performed:
 
 * Macros must be enabled in the document; Default LibreOffice Security changes must be modified in order to do so.
 * The LibreOffice GUI freezes while the macros run. There is probably nothing that can be done about it.
-* Running the macros is slow. Download and convert takes about 15 minutes for *every* documentation page.
 
 ## Directory structure
 
@@ -137,12 +128,11 @@ Example of directory structure for EAP 6.3.0 (explanation below):
         |   `-- ODT and PDF formats of comparison documents - compared to previous build (EAP-6.3.0.ER2)
         `-- ODF and PDF formats of full books
 
-EAP6ComparisonSheet.ods -- tool for automated documents download and comparison, used for EAP 6
-EAP7ComparisonSheet.ods -- tool for automated documents download and comparison, used for EAP 7
-EAP-6.3.0.ER1 -- first build of particular EAP release, all books in PDF and ODT format are stored
-EAP-6.3.0.ER2 -- following builds (starting with ER2) in addition contain comparison directory
-comparison -- diff to previous version in PDF and ODT format
-           -- if it is needed, diff to another version can be generated and it is stored under comparison/<another_version> directory
+* EAP6ComparisonSheet.ods -- tool for automated documents download and comparison, used for EAP 6
+* EAP7ComparisonSheet.ods -- tool for automated documents download and comparison, used for EAP 7
+* EAP-6.3.0.ER1 -- first build of particular EAP release, all books in PDF and ODT format are stored
+* EAP-6.3.0.ER2 -- following builds (starting with ER2) in addition contain comparison directory
+* comparison -- diff to previous version in PDF and ODT format; if it is needed, diff to another version can be generated and it is stored under comparison/<another_version> directory
 
 Additional information
 ----------------------
