@@ -5,7 +5,6 @@ import com.sun.star.lang.XComponent
 import com.sun.star.script.provider.XScriptContext
 import com.sun.star.sheet.*
 import com.sun.star.table.XCell
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.format.DateTimeFormatter
@@ -76,20 +75,6 @@ class DownloadModuleImpl(val scriptContext: XScriptContext) {
             val path = Paths.get(docToDownload.url)
             val page = dir.resolve(path.subpath(1, path.nameCount)).resolve("index.html")
             docToDownload.convert(page.toUri().toASCIIString())
-        }
-    }
-
-    fun mirrorDocPages(dir: File, urls: Array<String>) {
-        val builder = ProcessBuilder()
-                .command("wget", "--no-check-certificate", "-EHkKp", *urls)
-                .directory(dir)
-                .redirectOutput(File("/dev/stdout"))
-                .redirectError(File("/dev/stderr"))
-        val process = builder.start()
-        process.waitFor()
-
-        if (process.exitValue() != 0) {
-            println("[FAIL] wget failed to download some files, see log above")
         }
     }
 
@@ -186,7 +171,7 @@ class DownloadModuleImpl(val scriptContext: XScriptContext) {
     }
 
     fun findEmptyColInRow(sheet: XSpreadsheet, row: Int, col: Int): Int {
-        var c = col;
+        var c = col
         while (sheet.getCellByPosition(c, row).formula.isNotBlank()) {
             c++
         }

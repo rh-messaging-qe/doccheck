@@ -3,7 +3,6 @@ import com.sun.star.beans.XMultiPropertySet
 import com.sun.star.lang.XMultiComponentFactory
 import com.sun.star.script.provider.XScriptContext
 import com.sun.star.sheet.XSpreadsheet
-import com.sun.star.sheet.XSpreadsheetDocument
 import com.sun.star.uno.UnoRuntime
 import java.util.*
 

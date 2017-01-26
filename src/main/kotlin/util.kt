@@ -10,6 +10,7 @@ import com.sun.star.lang.XMultiServiceFactory
 import com.sun.star.lang.XServiceInfo
 import com.sun.star.text.XTextContent
 import com.sun.star.xml.dom.XDocument
+import java.io.File
 
 fun withLockedUI(sheetdocument: XDocument, f: () -> Any) {
     val actionInterface = sheetdocument.query(XActionLockable::class.java)
@@ -100,4 +101,18 @@ fun SaveAsPdf(document: Any, target: String) {
             }
     )
     storable.storeToURL(target, propertyValues)
+}
+
+fun mirrorDocPages(dir: File, urls: Array<String>) {
+    val builder = ProcessBuilder()
+            .command("wget", "--no-check-certificate", "-EHkKp", *urls)
+            .directory(dir)
+            .redirectOutput(File("/dev/stdout"))
+            .redirectError(File("/dev/stderr"))
+    val process = builder.start()
+    process.waitFor()
+
+    if (process.exitValue() != 0) {
+        println("[FAIL] wget failed to download some files, see log above")
+    }
 }
