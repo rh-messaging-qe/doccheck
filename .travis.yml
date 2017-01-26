@@ -19,7 +19,7 @@ cache:
 addons:
   apt:
     packages:
-    - libreoffice-common
+      - libreoffice
 
 # https://github.com/cedricmessiant/collective.documentfusion/blob/master/.travis.yml
 before_script:
