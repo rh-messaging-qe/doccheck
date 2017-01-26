@@ -1,5 +1,4 @@
 import com.sun.star.beans.PropertyValue
-import com.sun.star.document.XActionLockable
 import com.sun.star.frame.XDispatchHelper
 import com.sun.star.frame.XDispatchProvider
 import com.sun.star.lang.XComponent
@@ -7,7 +6,6 @@ import com.sun.star.lang.XMultiComponentFactory
 import com.sun.star.script.provider.XScriptContext
 import com.sun.star.sheet.XSpreadsheet
 import com.sun.star.uno.UnoRuntime
-import com.sun.star.xml.dom.XDocument
 import java.nio.file.Paths
 
 /**

@@ -5,7 +5,6 @@ import com.sun.star.lang.XComponent
 import com.sun.star.script.provider.XScriptContext
 import com.sun.star.sheet.*
 import com.sun.star.table.XCell
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.format.DateTimeFormatter
@@ -172,7 +171,7 @@ class DownloadModuleImpl(val scriptContext: XScriptContext) {
     }
 
     fun findEmptyColInRow(sheet: XSpreadsheet, row: Int, col: Int): Int {
-        var c = col;
+        var c = col
         while (sheet.getCellByPosition(c, row).formula.isNotBlank()) {
             c++
         }

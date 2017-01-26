@@ -39,47 +39,9 @@
  *
  *************************************************************************/
 
-import com.sun.star.awt.ActionEvent;
-import com.sun.star.awt.AdjustmentEvent;
-import com.sun.star.awt.AdjustmentType;
-import com.sun.star.awt.FocusChangeReason;
-import com.sun.star.awt.FocusEvent;
-import com.sun.star.awt.ItemEvent;
-import com.sun.star.awt.KeyEvent;
-import com.sun.star.awt.MouseEvent;
-import com.sun.star.awt.PushButtonType;
-import com.sun.star.awt.SpinEvent;
-import com.sun.star.awt.TextEvent;
-import com.sun.star.awt.XActionListener;
-import com.sun.star.awt.XAdjustmentListener;
-import com.sun.star.awt.XButton;
-import com.sun.star.awt.XCheckBox;
-import com.sun.star.awt.XComboBox;
-import com.sun.star.awt.XControl;
-import com.sun.star.awt.XControlContainer;
-import com.sun.star.awt.XControlModel;
-import com.sun.star.awt.XDialog;
-import com.sun.star.awt.XFixedText;
-import com.sun.star.awt.XFocusListener;
-import com.sun.star.awt.XItemEventBroadcaster;
-import com.sun.star.awt.XItemListener;
-import com.sun.star.awt.XKeyListener;
-import com.sun.star.awt.XListBox;
-import com.sun.star.awt.XMouseListener;
-import com.sun.star.awt.XPointer;
-import com.sun.star.awt.XReschedule;
-import com.sun.star.awt.XScrollBar;
-import com.sun.star.awt.XSpinField;
-import com.sun.star.awt.XSpinListener;
-import com.sun.star.awt.XTextComponent;
-import com.sun.star.awt.XTextListener;
-import com.sun.star.awt.XToolkit;
-import com.sun.star.awt.XTopWindow;
-import com.sun.star.awt.XWindow;
-import com.sun.star.awt.XWindowPeer;
+import com.sun.star.awt.*;
 import com.sun.star.beans.XMultiPropertySet;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.XIndexContainer;
 import com.sun.star.container.XNameAccess;
 import com.sun.star.container.XNameContainer;
 import com.sun.star.frame.XDesktop;
@@ -89,15 +51,10 @@ import com.sun.star.lang.EventObject;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
-import com.sun.star.lang.XSingleServiceFactory;
 import com.sun.star.ucb.XFileIdentifierConverter;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-import com.sun.star.util.XNumberFormats;
-import com.sun.star.util.XNumberFormatsSupplier;
-import com.sun.star.util.Date;
-import com.sun.star.util.Time;
-import com.sun.star.util.thePathSettings;
+import com.sun.star.util.*;
 
 
 // Anregung von DV:
@@ -107,17 +64,15 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     protected XComponentContext m_xContext = null;
     protected com.sun.star.lang.XMultiComponentFactory m_xMCF;
     protected XMultiServiceFactory m_xMSFDialogModel;
-    private XModel m_xModel;
     protected XNameContainer m_xDlgModelNameContainer;
     protected XControlContainer m_xDlgContainer;
     //    protected XNameAccess m_xDlgModelNameAccess;
     protected XControl m_xDialogControl;
     protected XDialog xDialog;
-
     protected XWindowPeer m_xWindowPeer = null;
-
     protected XFrame m_xFrame = null;
     protected XComponent m_xComponent = null;
+    private XModel m_xModel;
 
 
     /**
@@ -129,9 +84,30 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         createDialog(m_xMCF);
     }
 
+    /**
+     * makes a String unique by appending a numerical suffix
+     *
+     * @param _xElementContainer the com.sun.star.container.XNameAccess container
+     *                           that the new Element is going to be inserted to
+     * @param _sElementName      the StemName of the Element
+     */
+    public static String createUniqueName(XNameAccess _xElementContainer, String _sElementName) {
+        boolean bElementexists = true;
+        int i = 1;
+        String BaseName = _sElementName;
+        while (bElementexists) {
+            bElementexists = _xElementContainer.hasByName(_sElementName);
+            if (bElementexists) {
+                i += 1;
+                _sElementName = BaseName + Integer.toString(i);
+            }
+        }
+        return _sElementName;
+    }
+
     protected void createDialog(XMultiComponentFactory _xMCF) {
         try {
-            Object oDialogModel =  _xMCF.createInstanceWithContext("com.sun.star.awt.UnoControlDialogModel", m_xContext);
+            Object oDialogModel = _xMCF.createInstanceWithContext("com.sun.star.awt.UnoControlDialogModel", m_xContext);
 
             // The XMultiServiceFactory of the dialogmodel is needed to instantiate the controls...
             m_xMSFDialogModel = UnoRuntime.queryInterface(XMultiServiceFactory.class, oDialogModel);
@@ -157,9 +133,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
-
-
+//    public XItemListener getRoadmapItemStateChangeListener(){
+//        return new RoadmapItemStateChangeListener(m_xMSFDialogModel);
+//    }
 
     public short executeDialog() {
         if (m_xWindowPeer == null) {
@@ -170,23 +146,14 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xDialog.execute();
     }
 
-
-
-
-//    public XItemListener getRoadmapItemStateChangeListener(){
-//        return new RoadmapItemStateChangeListener(m_xMSFDialogModel);
-//    }
-
-
     public void initialize(String[] PropertyNames, Object[] PropertyValues) {
-        try{
+        try {
             XMultiPropertySet xMultiPropertySet = UnoRuntime.queryInterface(XMultiPropertySet.class, m_xDlgModelNameContainer);
             xMultiPropertySet.setPropertyValues(PropertyNames, PropertyValues);
         } catch (com.sun.star.uno.Exception ex) {
             ex.printStackTrace(System.err);
-        }}
-
-
+        }
+    }
 
     /**
      * create a peer for this
@@ -194,8 +161,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
      * peer as a parent.
      */
     private XWindowPeer createWindowPeer(XWindowPeer _xWindowParentPeer) {
-        try{
-            if (_xWindowParentPeer == null){
+        try {
+            if (_xWindowParentPeer == null) {
                 XWindow xWindow = UnoRuntime.queryInterface(XWindow.class, m_xDlgContainer);
                 xWindow.setVisible(false);
                 Object tk = m_xMCF.createInstanceWithContext("com.sun.star.awt.Toolkit", m_xContext);
@@ -211,11 +178,6 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return null;
     }
 
-
-
-
-
-
     /**
      * Creates a peer for this
      * dialog, using the active OO frame
@@ -225,15 +187,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return createWindowPeer(null);
     }
 
-
-
-
-
-
-
-    public XFixedText insertFixedText(XMouseListener _xMouseListener, int _nPosX, int _nPosY, int _nWidth, int _nStep, String _sLabel){
+    public XFixedText insertFixedText(XMouseListener _xMouseListener, int _nPosX, int _nPosY, int _nWidth, int _nStep, String _sLabel) {
         XFixedText xFixedText = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "Label");
 
@@ -243,8 +199,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
 
             xFTModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Step", "Width"},
-                    new Object[] { Integer.valueOf(8), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nStep), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Step", "Width"},
+                    new Object[]{Integer.valueOf(8), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nStep), Integer.valueOf(_nWidth)});
             // add the model to the NameContainer of the dialog model
             m_xDlgModelNameContainer.insertByName(sName, oFTModel);
 
@@ -273,10 +229,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xFixedText;
     }
 
-
-    public XTextComponent insertCurrencyField(XTextListener _xTextListener, int _nPositionX, int _nPositionY, int _nWidth){
+    public XTextComponent insertCurrencyField(XTextListener _xTextListener, int _nPositionX, int _nPositionY, int _nWidth) {
         XTextComponent xTextComponent = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "CurrencyField");
 
@@ -286,8 +241,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xCFModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(12), sName, Integer.valueOf(_nPositionX), Integer.valueOf(_nPositionY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(12), sName, Integer.valueOf(_nPositionX), Integer.valueOf(_nPositionY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oCFModel);
@@ -318,11 +273,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xTextComponent;
     }
 
-
-
-    public XPropertySet insertProgressBar(int _nPosX, int _nPosY, int _nWidth, int _nProgressMax){
+    public XPropertySet insertProgressBar(int _nPosX, int _nPosY, int _nWidth, int _nProgressMax) {
         XPropertySet xPBModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "ProgressBar");
 
@@ -332,8 +285,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xPBModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oPBModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xPBModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(8), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(8), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oPBModel);
@@ -358,10 +311,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xPBModelPSet;
     }
 
-
-
-    public void insertHorizontalFixedLine(int _nPosX, int _nPosY, int _nWidth, String _sLabel){
-        try{
+    public void insertHorizontalFixedLine(int _nPosX, int _nPosY, int _nWidth, String _sLabel) {
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "FixedLine");
 
@@ -371,8 +322,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xFLModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "Orientation", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(8), sName, Integer.valueOf(0), Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "Orientation", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(8), sName, Integer.valueOf(0), Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oFLModel);
@@ -395,10 +346,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         }
     }
 
-
-
-    public void insertGroupBox(int _nPosX, int _nPosY, int _nHeight, int _nWidth){
-        try{
+    public void insertGroupBox(int _nPosX, int _nPosY, int _nHeight, int _nWidth) {
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "FrameControl");
 
@@ -408,8 +357,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xGBModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(_nHeight), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(_nHeight), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oGBModel);
@@ -432,11 +381,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         }
     }
 
-
-
-    public XTextComponent insertEditField(XTextListener _xTextListener, XFocusListener _xFocusListener, int _nPosX, int _nPosY, int _nWidth){
+    public XTextComponent insertEditField(XTextListener _xTextListener, XFocusListener _xFocusListener, int _nPosX, int _nPosY, int _nWidth) {
         XTextComponent xTextComponent = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "TextField");
 
@@ -446,8 +393,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xTFModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Text", "Width"},
-                    new Object[] { Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), "MyText", Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Text", "Width"},
+                    new Object[]{Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), "MyText", Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oTFModel);
@@ -479,9 +426,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xTextComponent;
     }
 
-    public XPropertySet insertTimeField(int _nPosX, int _nPosY, int _nWidth, Time _aTime, Time _aTimeMin, Time _aTimeMax){
+    public XPropertySet insertTimeField(int _nPosX, int _nPosY, int _nWidth, Time _aTime, Time _aTimeMin, Time _aTimeMax) {
         XPropertySet xTFModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "TimeField");
 
@@ -491,8 +438,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xTFModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Spin", "Width"},
-                    new Object[] { Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Spin", "Width"},
+                    new Object[]{Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oTFModel);
@@ -519,11 +466,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xTFModelPSet;
     }
 
-
-
-    public XPropertySet insertDateField(XSpinListener _xSpinListener, int _nPosX, int _nPosY, int _nWidth){
+    public XPropertySet insertDateField(XSpinListener _xSpinListener, int _nPosX, int _nPosY, int _nWidth) {
         XPropertySet xDFModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "DateField");
 
@@ -533,8 +478,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xDFModelMPSet.setPropertyValues(
-                    new String[] {"Dropdown", "Height", "Name", "PositionX", "PositionY", "Width"},
-                    new Object[] {Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Dropdown", "Height", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oDFModel);
@@ -543,9 +488,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             // The following properties may also be set with XMultiPropertySet but we
             // use the XPropertySet interface merely for reasons of demonstration
             xDFModelPSet.setPropertyValue("DateFormat", Short.valueOf((short) 7));
-            xDFModelPSet.setPropertyValue("DateMin", new Date((short)1, (short)4, (short)2007));
-            xDFModelPSet.setPropertyValue("DateMax", new Date((short)1, (short)5, (short)2007));
-            xDFModelPSet.setPropertyValue("Date", new Date((short)15, (short)4, (short)2000));
+            xDFModelPSet.setPropertyValue("DateMin", new Date((short) 1, (short) 4, (short) 2007));
+            xDFModelPSet.setPropertyValue("DateMax", new Date((short) 1, (short) 5, (short) 2007));
+            xDFModelPSet.setPropertyValue("Date", new Date((short) 15, (short) 4, (short) 2000));
             Object oDFControl = m_xDlgContainer.getControl(sName);
 
             // add a SpinListener that is notified on each change of the controlvalue...
@@ -566,10 +511,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xDFModelPSet;
     }
 
-
-    public XPropertySet insertPatternField(int _nPosX, int _nPosY, int _nWidth){
+    public XPropertySet insertPatternField(int _nPosX, int _nPosY, int _nWidth) {
         XPropertySet xPFModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "PatternField");
 
@@ -579,8 +523,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xPFModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oPFModel);
@@ -608,12 +552,11 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xPFModelPSet;
     }
 
-
     public XPropertySet insertNumericField(int _nPosX, int _nPosY, int _nWidth,
                                            double _fValueMin, double _fValueMax, double _fValue,
-                                           double _fValueStep, short _nDecimalAccuracy){
+                                           double _fValueStep, short _nDecimalAccuracy) {
         XPropertySet xNFModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "NumericField");
 
@@ -622,8 +565,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xNFModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oNFModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xNFModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Spin", "StrictFormat", "Width"},
-                    new Object[] { Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Boolean.TRUE, Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Spin", "StrictFormat", "Width"},
+                    new Object[]{Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Boolean.TRUE, Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oNFModel);
@@ -651,11 +594,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xNFModelPSet;
     }
 
-
-
-    public XPropertySet insertVerticalScrollBar(XAdjustmentListener _xAdjustmentListener, int _nPosX, int _nPosY, int _nHeight){
+    public XPropertySet insertVerticalScrollBar(XAdjustmentListener _xAdjustmentListener, int _nPosX, int _nPosY, int _nHeight) {
         XPropertySet xSBModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "ScrollBar");
 
@@ -666,8 +607,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xSBModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oSBModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xSBModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "Orientation", "PositionX", "PositionY", "Width"},
-                    new Object[] { Integer.valueOf(_nHeight), sName, NOrientation, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(8)});
+                    new String[]{"Height", "Name", "Orientation", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(_nHeight), sName, NOrientation, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(8)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oSBModel);
@@ -700,30 +641,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
         return xSBModelPSet;
     }
 
-
-    /** makes a String unique by appending a numerical suffix
-     * @param _xElementContainer the com.sun.star.container.XNameAccess container
-     * that the new Element is going to be inserted to
-     * @param _sElementName the StemName of the Element
-     */
-    public static String createUniqueName(XNameAccess _xElementContainer, String _sElementName) {
-        boolean bElementexists = true;
-        int i = 1;
-        String BaseName = _sElementName;
-        while (bElementexists) {
-            bElementexists = _xElementContainer.hasByName(_sElementName);
-            if (bElementexists) {
-                i += 1;
-                _sElementName = BaseName + Integer.toString(i);
-            }
-        }
-        return _sElementName;
-    }
-
-
-    public XCheckBox insertCheckBox(XItemListener _xItemListener, int _nPosX, int _nPosY, int _nWidth){
+    public XCheckBox insertCheckBox(XItemListener _xItemListener, int _nPosX, int _nPosY, int _nWidth) {
         XCheckBox xCheckBox = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "CheckBox");
 
@@ -733,8 +653,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             XMultiPropertySet xCBMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oCBModel);
             xCBMPSet.setPropertyValues(
-                    new String[]  {"Height", "Label", "Name", "PositionX", "PositionY", "Width" } ,
-                    new Object[] {Integer.valueOf(8), "~Include page number", sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Label", "Name", "PositionX", "PositionY", "Width"},
+                    new Object[]{Integer.valueOf(8), "~Include page number", sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nWidth)});
 
             // The following property may also be set with XMultiPropertySet but we
             // use the XPropertySet interface merely for reasons of demonstration
@@ -764,10 +684,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
-
-    public void insertRadioButtonGroup(short _nTabIndex, int _nPosX, int _nPosY, int _nWidth){
-        try{
+    public void insertRadioButtonGroup(short _nTabIndex, int _nPosX, int _nPosY, int _nWidth) {
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "OptionButton");
 
@@ -776,8 +694,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xRBMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oRBModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xRBMPSet.setPropertyValues(
-                    new String[]  {"Height", "Label", "Name", "PositionX", "PositionY", "State", "TabIndex", "Width" } ,
-                    new Object[] {Integer.valueOf(8), "~First Option", sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Short.valueOf((short) 1), Short.valueOf(_nTabIndex++),Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Label", "Name", "PositionX", "PositionY", "State", "TabIndex", "Width"},
+                    new Object[]{Integer.valueOf(8), "~First Option", sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Short.valueOf((short) 1), Short.valueOf(_nTabIndex++), Integer.valueOf(_nWidth)});
             // add the model to the NameContainer of the dialog model
             m_xDlgModelNameContainer.insertByName(sName, oRBModel);
 
@@ -788,8 +706,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             xRBMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oRBModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xRBMPSet.setPropertyValues(
-                    new String[]  {"Height", "Label", "Name", "PositionX", "PositionY", "TabIndex", "Width" } ,
-                    new Object[] {Integer.valueOf(8), "~Second Option", sName, Integer.valueOf(130), Integer.valueOf(214), Short.valueOf(_nTabIndex), Integer.valueOf(150)});
+                    new String[]{"Height", "Label", "Name", "PositionX", "PositionY", "TabIndex", "Width"},
+                    new Object[]{Integer.valueOf(8), "~Second Option", sName, Integer.valueOf(130), Integer.valueOf(214), Short.valueOf(_nTabIndex), Integer.valueOf(150)});
             // add the model to the NameContainer of the dialog model
             m_xDlgModelNameContainer.insertByName(sName, oRBModel);
         } catch (com.sun.star.uno.Exception ex) {
@@ -807,9 +725,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-    public XListBox insertListBox(int _nPosX, int _nPosY, int _nWidth, int _nStep, String[] _sStringItemList){
+    public XListBox insertListBox(int _nPosX, int _nPosY, int _nWidth, int _nStep, String[] _sStringItemList) {
         XListBox xListBox = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "ListBox");
 
@@ -818,13 +736,13 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xLBModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oListBoxModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xLBModelMPSet.setPropertyValues(
-                    new String[]  {"Dropdown", "Height", "Name", "PositionX", "PositionY", "Step", "StringItemList", "Width" } ,
-                    new Object[] {Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nStep), _sStringItemList, Integer.valueOf(_nWidth)});
+                    new String[]{"Dropdown", "Height", "Name", "PositionX", "PositionY", "Step", "StringItemList", "Width"},
+                    new Object[]{Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Integer.valueOf(_nStep), _sStringItemList, Integer.valueOf(_nWidth)});
             // The following property may also be set with XMultiPropertySet but we
             // use the XPropertySet interface merely for reasons of demonstration
             XPropertySet xLBModelPSet = UnoRuntime.queryInterface(XPropertySet.class, xLBModelMPSet);
             xLBModelPSet.setPropertyValue("MultiSelection", Boolean.TRUE);
-            short[] nSelItems = new short[] {(short) 1, (short) 3};
+            short[] nSelItems = new short[]{(short) 1, (short) 3};
             xLBModelPSet.setPropertyValue("SelectedItems", nSelItems);
             // add the model to the NameContainer of the dialog model
             m_xDlgModelNameContainer.insertByName(sName, xLBModelMPSet);
@@ -847,9 +765,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-    public XComboBox insertComboBox(int _nPosX, int _nPosY, int _nWidth){
+    public XComboBox insertComboBox(int _nPosX, int _nPosY, int _nWidth) {
         XComboBox xComboBox = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "ComboBox");
 
@@ -860,8 +778,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xCbBModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oComboBoxModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xCbBModelMPSet.setPropertyValues(
-                    new String[]  {"Dropdown", "Height", "Name", "PositionX", "PositionY", "StringItemList", "Width" } ,
-                    new Object[] {Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), sStringItemList, Integer.valueOf(_nWidth)});
+                    new String[]{"Dropdown", "Height", "Name", "PositionX", "PositionY", "StringItemList", "Width"},
+                    new Object[]{Boolean.TRUE, Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), sStringItemList, Integer.valueOf(_nWidth)});
 
             // The following property may also be set with XMultiPropertySet but we
             // use the XPropertySet interface merely for reasons of demonstration
@@ -891,10 +809,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
-    public XPropertySet insertFormattedField(XSpinListener _xSpinListener, int _nPosX, int _nPosY, int _nWidth){
+    public XPropertySet insertFormattedField(XSpinListener _xSpinListener, int _nPosX, int _nPosY, int _nWidth) {
         XPropertySet xFFModelPSet = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "FormattedField");
 
@@ -903,8 +820,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xFFModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oFFModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xFFModelMPSet.setPropertyValues(
-                    new String[] {"EffectiveValue", "Height",  "Name", "PositionX", "PositionY", "StrictFormat", "Spin", "Width"},
-                    new Object[] { new Double(12348), Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Boolean.TRUE, Integer.valueOf(_nWidth)});
+                    new String[]{"EffectiveValue", "Height", "Name", "PositionX", "PositionY", "StrictFormat", "Spin", "Width"},
+                    new Object[]{new Double(12348), Integer.valueOf(12), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Boolean.TRUE, Boolean.TRUE, Integer.valueOf(_nWidth)});
 
             xFFModelPSet = UnoRuntime.queryInterface(XPropertySet.class, oFFModel);
             // to define a numberformat you always need a locale...
@@ -920,7 +837,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XNumberFormats xNumberFormats = xNumberFormatsSupplier.getNumberFormats();
             // is the numberformat already defined?
             int nFormatKey = xNumberFormats.queryKey(sFormatString, aLocale, true);
-            if (nFormatKey == -1){
+            if (nFormatKey == -1) {
                 // if not then add it to the NumberFormatsSupplier
                 nFormatKey = xNumberFormats.addNew(sFormatString, aLocale);
             }
@@ -955,11 +872,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
-
-    public XTextComponent insertFileControl(XTextListener _xTextListener, int _nPosX, int _nPosY, int _nWidth){
+    public XTextComponent insertFileControl(XTextListener _xTextListener, int _nPosX, int _nPosY, int _nWidth) {
         XTextComponent xTextComponent = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "FileControl");
 
@@ -979,8 +894,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             XMultiPropertySet xFCModelMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oFCModel);
             xFCModelMPSet.setPropertyValues(
-                    new String[] {"Height", "Name", "PositionX", "PositionY", "Text", "Width"},
-                    new Object[] { Integer.valueOf(14), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), sSystemWorkPath, Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Name", "PositionX", "PositionY", "Text", "Width"},
+                    new Object[]{Integer.valueOf(14), sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), sSystemWorkPath, Integer.valueOf(_nWidth)});
 
             // The controlmodel is not really available until inserted to the Dialog container
             m_xDlgModelNameContainer.insertByName(sName, oFCModel);
@@ -1007,9 +922,9 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-    public XButton insertButton(XActionListener _xActionListener, int _nPosX, int _nPosY, int _nWidth, String _sLabel, short _nPushButtonType){
+    public XButton insertButton(XActionListener _xActionListener, int _nPosX, int _nPosY, int _nWidth, String _sLabel, short _nPushButtonType) {
         XButton xButton = null;
-        try{
+        try {
             // create a unique name by means of an own implementation...
             String sName = createUniqueName(m_xDlgModelNameContainer, "CommandButton");
 
@@ -1018,8 +933,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XMultiPropertySet xButtonMPSet = UnoRuntime.queryInterface(XMultiPropertySet.class, oButtonModel);
             // Set the properties at the model - keep in mind to pass the property names in alphabetical order!
             xButtonMPSet.setPropertyValues(
-                    new String[]  {"Height", "Label", "Name", "PositionX", "PositionY", "PushButtonType", "Width" } ,
-                    new Object[] {Integer.valueOf(14), _sLabel, sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Short.valueOf(_nPushButtonType), Integer.valueOf(_nWidth)});
+                    new String[]{"Height", "Label", "Name", "PositionX", "PositionY", "PushButtonType", "Width"},
+                    new Object[]{Integer.valueOf(14), _sLabel, sName, Integer.valueOf(_nPosX), Integer.valueOf(_nPosY), Short.valueOf(_nPushButtonType), Integer.valueOf(_nWidth)});
 
             // add the model to the NameContainer of the dialog model
             m_xDlgModelNameContainer.insertByName(sName, oButtonModel);
@@ -1043,8 +958,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
-    public XFrame getCurrentFrame(){
+    public XFrame getCurrentFrame() {
         XFrame xRetFrame = null;
         try {
             Object oDesktop = m_xMCF.createInstanceWithContext("com.sun.star.frame.Desktop", m_xContext);
@@ -1066,12 +980,12 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             String sName = (String) xPSet.getPropertyValue("Name");
             // just in case the listener has been added to several controls,
             // we make sure we refer to the right one
-            if (sName.equals("TextField1")){
+            if (sName.equals("TextField1")) {
                 String sText = (String) xPSet.getPropertyValue("Text");
                 System.out.println(sText);
                 // insert your code here to validate the text of the control...
             }
-        }catch (com.sun.star.uno.Exception ex){
+        } catch (com.sun.star.uno.Exception ex) {
             /* perform individual exception handling here.
              * Possible exception types are:
              * com.sun.star.lang.WrappedTargetException,
@@ -1083,7 +997,6 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
     public void up(SpinEvent spinEvent) {
         try {
             // get the control that has fired the event,
@@ -1093,12 +1006,12 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             String sName = (String) xPSet.getPropertyValue("Name");
             // just in case the listener has been added to several controls,
             // we make sure we refer to the right one
-            if (sName.equals("FormattedField1")){
+            if (sName.equals("FormattedField1")) {
                 double fvalue = Double.parseDouble(xPSet.getPropertyValue("EffectiveValue").toString());
                 System.out.println("Controlvalue:  " + fvalue);
                 // insert your code here to validate the value of the control...
             }
-        }catch (com.sun.star.uno.Exception ex){
+        } catch (com.sun.star.uno.Exception ex) {
             /* perform individual exception handling here.
              * Possible exception types are:
              * com.sun.star.lang.WrappedTargetException,
@@ -1124,7 +1037,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
 
     public void actionPerformed(ActionEvent rEvent) {
-        try{
+        try {
             // get the control that has fired the event,
             XControl xControl = UnoRuntime.queryInterface(XControl.class, rEvent.Source);
             XControlModel xControlModel = xControl.getModel();
@@ -1135,7 +1048,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             if (sName.equals("CommandButton1")) {
 
             }
-        }catch (com.sun.star.uno.Exception ex){
+        } catch (com.sun.star.uno.Exception ex) {
             /* perform individual exception handling here.
              * Possible exception types are:
              * com.sun.star.lang.WrappedTargetException,
@@ -1192,9 +1105,8 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
     }
 
 
-
     public void itemStateChanged(ItemEvent itemEvent) {
-        try{
+        try {
             // retrieve the control that the event has been invoked at...
             XCheckBox xCheckBox = UnoRuntime.queryInterface(XCheckBox.class, itemEvent.Source);
             // retrieve the control that we want to disable or enable
@@ -1202,7 +1114,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             XPropertySet xModelPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xControl.getModel());
             short nState = xCheckBox.getState();
             boolean bdoEnable = true;
-            switch (nState){
+            switch (nState) {
                 case 1:     // checked
                     bdoEnable = true;
                     break;
@@ -1214,7 +1126,7 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
             // Alternatively we could have done it also this way:
             // bdoEnable = (nState == 1);
             xModelPropertySet.setPropertyValue("Enabled", Boolean.valueOf(bdoEnable));
-        }catch (com.sun.star.uno.Exception ex){
+        } catch (com.sun.star.uno.Exception ex) {
             /* perform individual exception handling here.
              * Possible exception types are:
              * com.sun.star.lang.IllegalArgumentException
@@ -1229,20 +1141,19 @@ public class UnoDialogSample implements XTextListener, XSpinListener, XActionLis
 
 
     public void adjustmentValueChanged(AdjustmentEvent _adjustmentEvent) {
-        switch (_adjustmentEvent.Type.getValue()){
+        switch (_adjustmentEvent.Type.getValue()) {
             case AdjustmentType.ADJUST_ABS_value:
-                System.out.println( "The event has been triggered by dragging the thumb..." );
+                System.out.println("The event has been triggered by dragging the thumb...");
                 break;
             case AdjustmentType.ADJUST_LINE_value:
-                System.out.println( "The event has been triggered by a single line move.." );
+                System.out.println("The event has been triggered by a single line move..");
                 break;
             case AdjustmentType.ADJUST_PAGE_value:
-                System.out.println( "The event has been triggered by a block move..." );
+                System.out.println("The event has been triggered by a block move...");
                 break;
         }
-        System.out.println( "The value of the scrollbar is: " + _adjustmentEvent.Value);
+        System.out.println("The value of the scrollbar is: " + _adjustmentEvent.Value);
     }
-
 
 
 //    // Globally available object variables of the roadmapmodel

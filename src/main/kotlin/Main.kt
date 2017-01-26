@@ -1,13 +1,7 @@
-import com.sun.star.uno.UnoRuntime
-
-import com.sun.star.frame.XModel
-import com.sun.star.text.XTextDocument
-import com.sun.star.text.XTextRange
-import com.sun.star.text.XText
 import com.sun.star.script.provider.XScriptContext
+import com.sun.star.text.XTextDocument
+import com.sun.star.uno.UnoRuntime
 import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -31,6 +25,7 @@ object HelloWorld {
         val xTextRange = xText.end
         xTextRange.string = "Hello World (in Kotlin)"
     }
+
     @JvmStatic fun printkHW(xScriptContext: XScriptContext) {
         val xDocModel = xScriptContext.document
 
