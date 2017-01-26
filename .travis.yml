@@ -22,11 +22,9 @@ addons:
     - libreoffice-common
 
 # https://github.com/cedricmessiant/collective.documentfusion/blob/master/.travis.yml
-install:
-  - ./gradlew check
 before_script:
   - soffice --headless --nologo --accept="socket,host=localhost,port=2002;urp;StarOffice.ServiceManager" &
 script:
-  - ./gradlew test
+  - ./gradlew check
 after_script:
   - killall soffice
