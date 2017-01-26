@@ -79,20 +79,6 @@ class DownloadModuleImpl(val scriptContext: XScriptContext) {
         }
     }
 
-    fun mirrorDocPages(dir: File, urls: Array<String>) {
-        val builder = ProcessBuilder()
-                .command("wget", "--no-check-certificate", "-EHkKp", *urls)
-                .directory(dir)
-                .redirectOutput(File("/dev/stdout"))
-                .redirectError(File("/dev/stderr"))
-        val process = builder.start()
-        process.waitFor()
-
-        if (process.exitValue() != 0) {
-            println("[FAIL] wget failed to download some files, see log above")
-        }
-    }
-
     private fun setCellBackgroundColor(cell: XCell, color: Int) {
         val cellDocProperties = cell.query(XPropertySet::class.java)
         cellDocProperties.setPropertyValue("CellBackColor", color)

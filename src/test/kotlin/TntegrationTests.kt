@@ -128,9 +128,13 @@ class WriterIntegrationTests() {
 
     @Test fun testMirrorDocPages() {
         val urls = arrayOf(
-                "https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/"
+                "https://example.org"
+                // the following is more realistic, but takes way too long
+                // "https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/"
         )
-        val dir = Files.createTempDirectory("docmirror_")
-        DownloadModuleImpl(scriptContext).mirrorDocPages(dir.toFile(), urls)
+        val dir = Files.createTempDirectory("testdocmirror_")
+        mirrorDocPages(dir.toFile(), urls)
+
+        dir.toFile().deleteRecursively()
     }
 }
