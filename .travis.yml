@@ -1,7 +1,7 @@
 # https://docs.travis-ci.com/user/ci-environment/
 # https://docs.travis-ci.com/user/trusty-ci-environment/
 dist: trusty
-sudo: false
+sudo: required
 
 # https://docs.travis-ci.com/user/languages/java/#Projects-Using-Gradle
 language: java
@@ -15,17 +15,16 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-# https://docs.travis-ci.com/user/installing-dependencies/
-addons:
-  apt:
-    packages:
-      - libreoffice
-
 env:
   global:
   # https://docs.gradle.org/current/userguide/gradle_daemon.html
     - GRADLE_OPTS="-Dorg.gradle.daemon=false"
 
+# https://docs.travis-ci.com/user/installing-dependencies/
+before_install:
+  - sudo add-apt-repository ppa:libreoffice/ppa -y
+  - sudo apt-get update -q
+  - sudo apt-get install libreoffice -y
 # https://github.com/cedricmessiant/collective.documentfusion/blob/master/.travis.yml
 before_script:
   - soffice --headless --nologo --accept="socket,host=localhost,port=2002;urp;StarOffice.ServiceManager" &
