@@ -1,0 +1,32 @@
+# https://docs.travis-ci.com/user/ci-environment/
+# https://docs.travis-ci.com/user/trusty-ci-environment/
+dist: trusty
+sudo: false
+
+# https://docs.travis-ci.com/user/languages/java/#Projects-Using-Gradle
+language: java
+
+# http://stackoverflow.com/questions/26723369/cache-gradle-dependencies-travis-ci
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+# https://docs.travis-ci.com/user/installing-dependencies/
+addons:
+  apt:
+    packages:
+    - libreoffice-common
+
+# https://github.com/cedricmessiant/collective.documentfusion/blob/master/.travis.yml
+install:
+  - ./gradlew check
+before_script:
+  - soffice --headless --nologo --accept="socket,host=localhost,port=2002;urp;StarOffice.ServiceManager" &
+script:
+  - ./gradlew test
+after_script:
+  - killall soffice
