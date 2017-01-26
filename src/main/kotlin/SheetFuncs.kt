@@ -2,7 +2,28 @@ import com.sun.star.awt.*
 import com.sun.star.beans.XMultiPropertySet
 import com.sun.star.lang.XMultiComponentFactory
 import com.sun.star.script.provider.XScriptContext
+import com.sun.star.sheet.XSpreadsheet
+import com.sun.star.sheet.XSpreadsheetDocument
 import com.sun.star.uno.UnoRuntime
+import java.util.*
+
+fun getSettingsFromSettingsSheet(scriptContext: XScriptContext, sheetName: String): Map<String, String> {
+    val properties = HashMap<String, String>()
+    val spreadsheet = scriptContext.document.query(com.sun.star.sheet.XSpreadsheetDocument::class.java)
+    val sheet = spreadsheet.sheets.getByName(sheetName).query(XSpreadsheet::class.java)
+    for (i in 0..1000) {
+        val keyCell = sheet.getCellByPosition(0, i)
+        val valueCell = sheet.getCellByPosition(1, i)
+        if (keyCell.formula.isNullOrBlank()) {
+            continue
+        }
+        if (properties.contains(keyCell.formula)) {
+            throw RuntimeException("Property ${keyCell.formula} is defined more than once")
+        }
+        properties.put(keyCell.formula, valueCell.formula)
+    }
+    return properties
+}
 
 fun commonPrefixUpToDash(x: String, y: String): Int {
     return 42

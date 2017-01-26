@@ -5,9 +5,12 @@ import com.sun.star.lang.XComponent
 import com.sun.star.script.provider.XScriptContext
 import com.sun.star.sheet.*
 import com.sun.star.table.XCell
+import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
+import java.util.*
 
 object DownloadModule {
     @JvmStatic fun Convert(scriptContext: XScriptContext) {
@@ -30,11 +33,21 @@ object DownloadModule {
     }
 }
 
+data class DocToDownload(val url: String, val convert: (String) -> Unit)
+
 class DownloadModuleImpl(val scriptContext: XScriptContext) {
+    val settings = getSettingsFromSettingsSheet(scriptContext, "Settings")
+    val SKIP_DOWNLOAD = "skipDownload"
+    val MIRROR_PATH = "mirrorPath"
     fun Convert(version: String) {
         val document = scriptContext.document.query(com.sun.star.sheet.XSpreadsheetDocument::class.java)
         val numSheets = document.sheets.elementNames.size // TODO: can this be simplified?
         val sheet = document.sheets.getByName("Files").query(XSpreadsheet::class.java)
+
+
+        // need to download all files together, then convert one by one;
+        // store the urls and convert functions in a list first, then call it
+        val docsToDownload = ArrayList<DocToDownload>()
 
         for (row in 4..1000) {
             val cellDownload = sheet.getCellByPosition(0, row)
@@ -42,12 +55,41 @@ class DownloadModuleImpl(val scriptContext: XScriptContext) {
             val cellFileName = sheet.getCellByPosition(2, row)
 
             if (cellDownload.formula != "Finished" && cellURL.formula.isNotBlank() && cellFileName.formula.isNotBlank()) {
-                println("will download ${cellURL.formula}")
-                val target = doConvert(scriptContext, cellFileName.formula, cellURL.formula, version)
+                docsToDownload.add(DocToDownload(cellURL.formula, fun(url) {
+                    println("converting ${cellURL.formula} mirrored at $url")
+                    val target = doConvert(scriptContext, cellFileName.formula, url, version)
 
-                cellDownload.formula = "Finished"
-                updateDocuments(scriptContext, sheet, row, target, version)
+                    cellDownload.formula = "Finished"
+                    updateDocuments(scriptContext, sheet, row, target, version)
+                }))
             }
+        }
+
+        val dir = if (settings[MIRROR_PATH].isNullOrEmpty()) Files.createTempDirectory("docmirror_") else Paths.get(settings[MIRROR_PATH])
+        println("documentation will be mirrored to $dir")
+        if (settings[SKIP_DOWNLOAD] == "1" && !settings[MIRROR_PATH].isNullOrBlank()) {  // 1 meaning TRUE
+            println("skipping download")
+        } else {
+            mirrorDocPages(dir.toFile(), docsToDownload.map { it.url }.toTypedArray())
+        }
+        for (docToDownload in docsToDownload) {
+            val path = Paths.get(docToDownload.url)
+            val page = dir.resolve(path.subpath(1, path.nameCount)).resolve("index.html")
+            docToDownload.convert(page.toUri().toASCIIString())
+        }
+    }
+
+    fun mirrorDocPages(dir: File, urls: Array<String>) {
+        val builder = ProcessBuilder()
+                .command("wget", "--no-check-certificate", "-EHkKp", *urls)
+                .directory(dir)
+                .redirectOutput(File("/dev/stdout"))
+                .redirectError(File("/dev/stderr"))
+        val process = builder.start()
+        process.waitFor()
+
+        if (process.exitValue() != 0) {
+            println("[FAIL] wget failed to download some files, see log above")
         }
     }
 

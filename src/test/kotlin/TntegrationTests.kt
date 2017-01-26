@@ -74,11 +74,9 @@ class IntegrationTests {
         scriptContext.document.dispose()
     }
 
-    @Test fun blah() {
-//        val dispatchHelperObj = sofficeConnection.multiServiceFactory.createInstanceWithContext("com.sun.star.frame.DispatchHelper", scriptContext.componentContext)
-//        val dispatchHelper = dispatchHelperObj.query(XDispatchHelper::class.java)
-//        val dispatchProvider = scriptContext.desktop.currentFrame.query(XDispatchProvider::class.java)
-
+    @Test fun testGetSettingsFromSettingsSheet() {
+        val settings = getSettingsFromSettingsSheet(scriptContext, "Settings")
+        assertThat(settings).isEqualTo(mapOf("firstKey" to "firstValue", "secondKey" to ""))
     }
 
     //    @Nested inner class diffDocumentCreationTest {
@@ -123,8 +121,16 @@ class WriterIntegrationTests() {
     val sofficeConnection = SOfficeConnection()
     val scriptContext = ScriptContext(sofficeConnection, "src/test/tests.fodt")
 
-    @Test fun embedded() {
+    @Test fun testEmbeddedAllImages() {
         val textDocument = scriptContext.document
         embedAllImages(textDocument)
+    }
+
+    @Test fun testMirrorDocPages() {
+        val urls = arrayOf(
+                "https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/"
+        )
+        val dir = Files.createTempDirectory("docmirror_")
+        DownloadModuleImpl(scriptContext).mirrorDocPages(dir.toFile(), urls)
     }
 }
