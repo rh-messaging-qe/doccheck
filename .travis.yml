@@ -21,6 +21,11 @@ addons:
     packages:
       - libreoffice
 
+env:
+  global:
+  # https://docs.gradle.org/current/userguide/gradle_daemon.html
+    - GRADLE_OPTS="-Dorg.gradle.daemon=false"
+
 # https://github.com/cedricmessiant/collective.documentfusion/blob/master/.travis.yml
 before_script:
   - soffice --headless --nologo --accept="socket,host=localhost,port=2002;urp;StarOffice.ServiceManager" &
