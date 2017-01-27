@@ -1,3 +1,4 @@
+import com.sun.star.awt.Size
 import com.sun.star.beans.PropertyValue
 import com.sun.star.beans.XPropertySet
 import com.sun.star.container.XNameContainer
@@ -76,9 +77,34 @@ fun embedAllImages(textDocument: XModel) {
                     val newGraphicURL = xBitmapContainer.getByName(displayName).toString()
                     xPropSet.setPropertyValue("GraphicURL", newGraphicURL)
                 }
+                fixSixe(xPropSet)
             }
         }
     }
+}
+
+// http://openoffice.2283327.n4.nabble.com/api-dev-Actual-Size-of-com-sun-star-drawing-GraphicObjectShape-td2766923.html
+fun fixSixe(xPropSet: XPropertySet) {
+    // I saw conversion factor ~26.45823927765237 somewhere online, but it is easy to come up with it on my own:
+    // compare size before and after you press the Original Size button in image properties (Width; height is broken)
+    val c = 26.46  // screen is at 96 DPI and internal size unit is 1/100mm; 1/96*2.54*10*100 = 26.4583333
+    val graphic = xPropSet.getPropertyValue("Graphic")
+
+    // https://www.openoffice.org/api/docs/common/ref/com/sun/star/graphic/GraphicDescriptor.html
+    val graphicProperties = graphic.query(XPropertySet::class.java)
+//    printProperties(graphicProperties)
+    val sizePixel = graphicProperties.getPropertyValue("SizePixel") as Size
+    if (sizePixel.Width == 0 || sizePixel.Height == 0) {
+        // Size100thMM can do this, SizePixel can too, but shouldn't
+        println("SizePixel gave nonsense, skipping image")
+        return
+    }
+//    println("${(sizePixel.Width * c).toInt()}, ${(sizePixel.Height * c).toInt()}")
+    xPropSet.setPropertyValue("Size", Size((sizePixel.Width * 26.45).toInt(), (sizePixel.Height * 26.45).toInt()))
+}
+
+private fun printProperties(propertySet: XPropertySet) {
+    propertySet.propertySetInfo.properties.forEach { println(it.Name) }
 }
 
 fun SaveAsFodt(document: XComponent, target: String) {
