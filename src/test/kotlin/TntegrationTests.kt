@@ -12,6 +12,9 @@ import com.sun.star.uno.XComponentContext
 import org.junit.AfterClass
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -134,6 +137,23 @@ class WriterIntegrationTests() {
         )
         val dir = Files.createTempDirectory("testdocmirror_")
         mirrorDocPages(dir.toFile(), urls)
+
+        dir.toFile().deleteRecursively()
+    }
+
+    private fun readUrl(url: URL): String = BufferedReader(InputStreamReader(url.openStream())).readText()
+
+    @Test fun testGetPageNum() {
+        val url = URL("https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/")
+        //println(readUrl(url))
+        val id = parseDocPageId(url.openStream())
+        assertThat(id).isEqualTo("2754751")
+    }
+
+    @Test fun testDownloadDocPageFromXml() {
+        val dir = Files.createTempDirectory("testdoccheckxmls_")
+        val url = URL("https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/")
+        downloadDocPageFromXml(dir, url)
 
         dir.toFile().deleteRecursively()
     }
