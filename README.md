@@ -15,10 +15,11 @@ The reasons for the rewrite are as follows.
 3. Keeping the macros outside of the spreadsheet seemed better than embedding it.
 4. Can have unittests for the code, so making changes will be faster.
 
-### New features
+### New features (not present in the internal tool)
 
 * image links are replaced with embedded images
-* for better performance, HTML is first mirrored with `wget`, then the mirror is imported
+* image size is preserved
+* for better performance, doc text (HTML without any UI chrome) is fetched using API
 
 ## About documentation testing workflow
 
@@ -38,7 +39,7 @@ Tracking the snapshots and diffs in git keeps record of what was checked and ena
 
 ## Supported platform
 
-There is small amount of Linux-only code in the macro. This tool is developed and used for LibreOffice. It should work with OpenOffice as well.
+This tool is developed and used for LibreOffice. It should work with OpenOffice as well.
 
 ## Running tests
 
