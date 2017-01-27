@@ -12,7 +12,10 @@ import com.sun.star.lang.XServiceInfo
 import com.sun.star.text.XTextContent
 import com.sun.star.xml.dom.XDocument
 import org.xml.sax.InputSource
-import java.io.*
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.StringReader
 import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -137,32 +140,18 @@ fun SaveAsPdf(document: Any, target: String) {
     storable.storeToURL(target, propertyValues)
 }
 
-fun mirrorDocPages(dir: File, urls: Array<String>) {
-    val builder = ProcessBuilder()
-            .command("wget", "--no-check-certificate", "-EHkKp", *urls)
-            .directory(dir)
-            .redirectOutput(File("/dev/stdout"))
-            .redirectError(File("/dev/stderr"))
-    val process = builder.start()
-    process.waitFor()
-
-    if (process.exitValue() != 0) {
-        println("[FAIL] wget failed to download some files, see log above")
-    }
-}
-
-fun downloadDocPagesFromXml(dir: Path, urls: Iterable<String>): List<Path> {
-    return urls.map { url -> downloadDocPageFromXml(dir, URL(url)) }
-}
-
-fun downloadDocPageFromXml(dir: Path, url: URL): Path {
-    val text = downloadPageXml(dir, url)
-    //println(text)
-    val page = parseDocPageXml(text)
-    //println(page)
-    val output = dir.resolve(Paths.get(url.path).fileName.toString() + ".html")
-    output.toFile().writeText(
-            """<!DOCTYPE html>
+class DocPageDownloader(val dir: Path, val skipDownloads: Boolean) {
+    fun downloadDocPage(url: URL): Path {
+        val output = getDownloadDestination(url)
+        if (skipDownloads) {
+            return output
+        }
+        val text = downloadPageXml(dir, url)
+        //println(text)
+        val page = parseDocPageXml(text)
+        //println(page)
+        output.toFile().writeText(
+                """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -172,7 +161,14 @@ fun downloadDocPageFromXml(dir: Path, url: URL): Path {
 ${page.body}
 </body>
 </html>""")
-    return output
+        return output
+    }
+
+    private fun getDownloadDestination(url: URL): Path {
+        val path = Paths.get(url.path)
+        val page = dir.resolve(path.fileName.toString() + ".html")
+        return page
+    }
 }
 
 fun parseDocPageId(scannable: InputStream): String {

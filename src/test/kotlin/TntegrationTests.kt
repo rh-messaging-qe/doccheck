@@ -120,25 +120,13 @@ class IntegrationTests {
     }
 }
 
-class WriterIntegrationTests() {
+class WriterIntegrationTests {
     val sofficeConnection = SOfficeConnection()
     val scriptContext = ScriptContext(sofficeConnection, "src/test/tests.fodt")
 
     @Test fun testEmbeddedAllImages() {
         val textDocument = scriptContext.document
         embedAllImages(textDocument)
-    }
-
-    @Test fun testMirrorDocPages() {
-        val urls = arrayOf(
-                "https://example.org"
-                // the following is more realistic, but takes way too long
-                // "https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/"
-        )
-        val dir = Files.createTempDirectory("testdocmirror_")
-        mirrorDocPages(dir.toFile(), urls)
-
-        dir.toFile().deleteRecursively()
     }
 
     private fun readUrl(url: URL): String = BufferedReader(InputStreamReader(url.openStream())).readText()
@@ -153,7 +141,8 @@ class WriterIntegrationTests() {
     @Test fun testDownloadDocPageFromXml() {
         val dir = Files.createTempDirectory("testdoccheckxmls_")
         val url = URL("https://access.redhat.com/documentation/en/red-hat-jboss-a-mq/7.0-beta/single/introducing-red-hat-jboss-a-mq-7/")
-        downloadDocPageFromXml(dir, url)
+        val page = DocPageDownloader(dir, skipDownloads = false).downloadDocPage(url)
+        assertThat(page.toFile().exists()).isTrue()
 
         dir.toFile().deleteRecursively()
     }
